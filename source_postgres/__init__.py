@@ -1,5 +1,8 @@
 name = "source_postgres"
 
+class ChompSourceException(Exception):
+    pass
+
 class SourcePostgres(object):
     dummy_data = [(10000001, "AAAAAAAAAA"),
                   (10000002, "AAAAAAAAAB"),
@@ -18,6 +21,7 @@ class SourcePostgres(object):
         self.credentials = credentials
         self.source_config = source_config
         self.curr_batch = 0
+        self.validate_config()
 
     def get_batch(self):
         self.curr_batch += 1
@@ -27,3 +31,11 @@ class SourcePostgres(object):
 
     def cleanup(self):
         pass
+
+    def validate_config(self):
+        if 'table' not in self.source_config:
+            raise ChompSourceException("Key 'table' not present.")
+        elif 'columns' not in self.source_config:
+            raise ChompSourceException("Key 'columns' not present.")
+        elif len(self.source_config['columns']) == 0:
+            raise ChompSourceException("Value for 'columns' key is empty.")
