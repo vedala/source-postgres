@@ -8,7 +8,6 @@ class SourcePostgres(object):
     def __init__(self, credentials, source_config):
         self.credentials = credentials
         self.source_config = source_config
-        self.curr_batch = 0
         self.validate_config()
         self.db_initialization()
         sql_str = self.construct_sql()
