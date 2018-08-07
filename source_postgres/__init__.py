@@ -21,7 +21,8 @@ class SourcePostgres(object):
         return self.cursor.fetchmany(self.itersize)
 
     def cleanup(self):
-        pass
+        self.cursor.close()
+        self.connection.close()
 
     def validate_config(self):
         if 'table' not in self.source_config:
