@@ -11,7 +11,7 @@ class SourcePostgres(object):
         self.source_config = source_config
         self.validate_config()
         self.db_initialization()
-        sql_str = construct_sql(source_config['table'], source_config['columns'])
+        sql_str = construct_sql(source_config)
         self.execute_sql(sql_str)
         self.itersize = self.cursor.itersize
 
