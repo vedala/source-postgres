@@ -2,6 +2,7 @@ import unittest
 import os
 import json
 from source_postgres import construct_sql
+from source_postgres.sql_construct import build_operator, build_operand
 
 def get_file_contents(filename):
     try:
@@ -35,6 +36,38 @@ class SqlConstructTestCase(unittest.TestCase):
             "WHERE col503 = 1"
         constructed_sql = construct_sql(source_config)
         self.assertEqual(expected_sql, constructed_sql)
+
+    def test_build_operator_with_eq(self):
+        """Is an equal sign returned on calling build_operator with 'eq'?"""
+
+        self.assertEqual("=", build_operator("eq"))
+
+    def test_build_operator_invalid_operator(self):
+        """Does it raise expcetion if invalid operator supplied?"""
+
+        with self.assertRaises(Exception) as ctx:
+            build_operator("no_op")
+            self.assertEqual("Invalid operator", ctx.exception.value)
+
+    def test_build_operand_type_column(self):
+        """Is an operand of column type constructed correctly?"""
+
+        operand_dict = { 'operand_type': 'column', 'operand': 'first_name', }
+
+        expected_string = "first_name"
+        self.assertEqual(expected_string, build_operand(operand_dict))
+
+    def test_build_operand_type_literal_int(self):
+        """Is an operand of string literal type constructed correctly?"""
+
+        operand_dict = { 'operand_type': 'literal', 'operand': 'a_first_name', }
+        self.assertEqual("'a_first_name'", build_operand(operand_dict))
+
+    def test_build_operand_type_literal_string(self):
+        """Is an operand of int literal type constructed correctly?"""
+
+        operand_dict = { 'operand_type': 'literal', 'operand': 5678, }
+        self.assertEqual("5678", build_operand(operand_dict))
 
 if __name__ == "__main__":
     unittest.main()
