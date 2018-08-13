@@ -1,8 +1,9 @@
 import unittest
+from unittest.mock import patch
 import os
 import json
 from source_postgres import construct_sql
-from source_postgres.sql_construct import build_operator, build_operand
+from source_postgres.sql_construct import build_operator, build_operand, construct_expression
 
 def get_file_contents(filename):
     try:
@@ -87,6 +88,17 @@ class SqlConstructTestCase(unittest.TestCase):
             build_operand(operand_dict)
 
         self.assertEqual("Invalid operand_type specified", str(ctx.exception))
+
+    @patch('source_postgres.sql_construct.build_operator', return_value="=")
+    @patch('source_postgres.sql_construct.build_operand',
+                                side_effect=["first_name", "'a_first_name'"])
+    def test_construct_expression(self, mock_build_operand, mock_build_operator):
+        """Is correct expression constructed?"""
+
+        where_dict = { 'operand_1': 'some_value', 'operand_2': 'some_value',
+                        'operator': 'some_value' }
+        expected_string = "first_name = 'a_first_name'"
+        self.assertEqual(expected_string, construct_expression(where_dict))
 
 if __name__ == "__main__":
     unittest.main()
