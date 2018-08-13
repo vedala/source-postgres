@@ -42,6 +42,10 @@ def build_operand(operand_dict):
             operand_str += str(operand)
         elif isinstance(operand, str):
             operand_str += f"'{operand}'"
+        else:
+            raise Exception("Unsupported literal type encountered")
+    else:
+        raise Exception("Invalid operand_type specified")
 
     return operand_str
 

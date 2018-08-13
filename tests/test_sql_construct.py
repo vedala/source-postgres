@@ -47,7 +47,8 @@ class SqlConstructTestCase(unittest.TestCase):
 
         with self.assertRaises(Exception) as ctx:
             build_operator("no_op")
-            self.assertEqual("Invalid operator", ctx.exception.value)
+
+        self.assertEqual("Invalid operator", str(ctx.exception))
 
     def test_build_operand_type_column(self):
         """Is an operand of column type constructed correctly?"""
@@ -68,6 +69,24 @@ class SqlConstructTestCase(unittest.TestCase):
 
         operand_dict = { 'operand_type': 'literal', 'operand': 5678, }
         self.assertEqual("5678", build_operand(operand_dict))
+
+    def test_build_operand_type_unsupported_literal_type(self):
+        """Does it raise an exception on supplying unsupported literal type?"""
+
+        operand_dict = { 'operand_type': 'literal', 'operand': None, }
+        with self.assertRaises(Exception) as ctx:
+            build_operand(operand_dict)
+
+        self.assertEqual("Unsupported literal type encountered", str(ctx.exception))
+
+    def test_build_operand_type_invalid_operand_type(self):
+        """Does it raise an exception on supplying invalid operand_type?"""
+
+        operand_dict = { 'operand_type': 'invalid_value', 'operand': 'aaa', }
+        with self.assertRaises(Exception) as ctx:
+            build_operand(operand_dict)
+
+        self.assertEqual("Invalid operand_type specified", str(ctx.exception))
 
 if __name__ == "__main__":
     unittest.main()
