@@ -41,7 +41,7 @@ def build_operand(operand_dict):
         if isinstance(operand, int):
             operand_str += str(operand)
         elif isinstance(operand, str):
-            operand_str += "'{operand}'"
+            operand_str += f"'{operand}'"
 
     return operand_str
 
