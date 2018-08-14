@@ -2,6 +2,8 @@ import unittest
 from unittest.mock import patch, MagicMock
 import os
 from source_postgres import SourcePostgres
+import psycopg2
+from psycopg2 import cursor
 
 class ExtractTestCase(unittest.TestCase):
     """Tests for `extract.py`."""
@@ -30,14 +32,17 @@ class ExtractTestCase(unittest.TestCase):
         expected_string="somekey1=some_value somekey2=another_value "
         self.assertEqual(expected_string, source_pg_inst.construct_connect_string())
 
-    @patch('source_postgres.SourcePostgres')
-    def test_construct_connect_string(self, mockSourceClass):
-        """Is execute on cursor called with sql_str argument?"""
+
+    @patch.object(SourcePostgres, '__init__')
+    @patch.object(SourcePostgres, 'execute_sql')
+    def test_execute_sql(self, mock_execute_sql, mock_init):
+        """Is execute_sql on cursor called with sql_str argument?"""
         
-        mockSourceClass.return_value.execute_sql = MagicMock()
-        source = mockSourceClass()
+        mock_init.return_value = None
+        source = SourcePostgres()
         source.execute_sql("some_sql_string")
-        mockSourceClass.return_value.execute_sql.assert_called_once_with("some_sql_string")
+        mock_execute_sql.assert_called_once_with("some_sql_string")
+
 
 if __name__ == "__main__":
     unittest.main()
