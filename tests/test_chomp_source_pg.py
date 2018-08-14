@@ -22,6 +22,7 @@ class ExtractTestCase(unittest.TestCase):
         source = SourcePostgres(credentials, source_config)
         self.assertEqual(2000, source.itersize)
 
+
     @patch.object(SourcePostgres, '__init__')
     def test_construct_connect_string(self, mock_init):
         """Is correct connect string constructed from supplied dictionary?"""
@@ -65,6 +66,7 @@ class ExtractTestCase(unittest.TestCase):
         mock_pg_connect.assert_called_once_with("some_connect_string")
         self.assertEqual("chompetl_named_cursor", source.cursor)
 
+
     @patch.object(SourcePostgres, '__init__')
     def test_validate_config(self, mock_init):
         """Does the method raise exceptions on invalid config?"""
@@ -90,6 +92,7 @@ class ExtractTestCase(unittest.TestCase):
         source.source_config = {'table': 'some_table', 'columns': ['col1', 'col2']}
         self.assertEqual(None, source.validate_config())
 
+
     @patch.object(SourcePostgres, '__init__')
     def test_cleanup(self, mock_init):
         """Are close() methods called on objects in variables - cursor and connection?"""
@@ -108,6 +111,24 @@ class ExtractTestCase(unittest.TestCase):
         source.cleanup()
         mock_cursor_close.assert_called_once_with()
         mock_conn_close.assert_called_once_with()
+
+
+    @patch.object(SourcePostgres, '__init__')
+    def test_get_batch(self, mock_init):
+        """Is fetchmany method on cursor called with itersize argument?"""
+
+        mock_init.return_value = None
+
+        source = SourcePostgres()
+        source.itersize = 8765
+        source.cursor = MagicMock()
+        mock_cursor_fetchmany = MagicMock(
+                            return_value="this is fetchmany return value")
+        source.cursor.fetchmany = mock_cursor_fetchmany
+
+        get_batch_retval = source.get_batch()
+        mock_cursor_fetchmany.assert_called_once_with(8765)
+        self.assertEqual("this is fetchmany return value", get_batch_retval)
 
 if __name__ == "__main__":
     unittest.main()
