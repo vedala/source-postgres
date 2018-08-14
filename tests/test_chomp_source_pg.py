@@ -3,6 +3,7 @@ from unittest.mock import patch, MagicMock
 import os
 from source_postgres import SourcePostgres
 from source_postgres.chomp_source_pg import ChompSourceException
+from source_postgres.sql_construct import construct_sql
 import psycopg2
 
 class ExtractTestCase(unittest.TestCase):
@@ -88,6 +89,25 @@ class ExtractTestCase(unittest.TestCase):
 
         source.source_config = {'table': 'some_table', 'columns': ['col1', 'col2']}
         self.assertEqual(None, source.validate_config())
+
+    @patch.object(SourcePostgres, '__init__')
+    def test_cleanup(self, mock_init):
+        """Are close() methods called on objects in variables - cursor and connection?"""
+
+        mock_init.return_value = None
+
+        source = SourcePostgres()
+        source.cursor = MagicMock()
+        source.connection = MagicMock()
+
+        mock_cursor_close = MagicMock(return_value="aa")
+        mock_conn_close = MagicMock(return_value="bb")
+        source.cursor.close = mock_cursor_close
+        source.connection.close = mock_conn_close
+
+        source.cleanup()
+        mock_cursor_close.assert_called_once_with()
+        mock_conn_close.assert_called_once_with()
 
 if __name__ == "__main__":
     unittest.main()
