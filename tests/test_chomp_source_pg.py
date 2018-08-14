@@ -2,6 +2,7 @@ import unittest
 from unittest.mock import patch, MagicMock
 import os
 from source_postgres import SourcePostgres
+from source_postgres.chomp_source_pg import ChompSourceException
 import psycopg2
 
 class ExtractTestCase(unittest.TestCase):
@@ -49,7 +50,7 @@ class ExtractTestCase(unittest.TestCase):
     @patch.object(SourcePostgres, '__init__')
     def test_db_initialization(self, mock_init, mock_cons_conn_str,
                                                           mock_pg_connect):
-        """Is execute on cursor called with sql_str argument?"""
+        """Does the method make calls to methods correctly?"""
 
         class MyConnection(object):
             def cursor(self, cursor_name):
@@ -62,6 +63,31 @@ class ExtractTestCase(unittest.TestCase):
         mock_cons_conn_str.assert_called_once_with()
         mock_pg_connect.assert_called_once_with("some_connect_string")
         self.assertEqual("chompetl_named_cursor", source.cursor)
+
+    @patch.object(SourcePostgres, '__init__')
+    def test_validate_config(self, mock_init):
+        """Does the method raise exceptions on invalid config?"""
+
+        mock_init.return_value = None
+        source = SourcePostgres()
+
+        source.source_config = {}
+        with self.assertRaises(ChompSourceException) as ctx:
+            source.validate_config()
+        self.assertEqual("Key 'table' not present.", str(ctx.exception))
+
+        source.source_config = {'table': 'some_table'}
+        with self.assertRaises(ChompSourceException) as ctx:
+            source.validate_config()
+        self.assertEqual("Key 'columns' not present.", str(ctx.exception))
+
+        source.source_config = {'table': 'some_table', 'columns': []}
+        with self.assertRaises(ChompSourceException) as ctx:
+            source.validate_config()
+        self.assertEqual("Value for 'columns' key is empty.", str(ctx.exception))
+
+        source.source_config = {'table': 'some_table', 'columns': ['col1', 'col2']}
+        self.assertEqual(None, source.validate_config())
 
 if __name__ == "__main__":
     unittest.main()
