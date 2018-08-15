@@ -9,20 +9,6 @@ import psycopg2
 class ExtractTestCase(unittest.TestCase):
     """Tests for `extract.py`."""
 
-    def test_first(self):
-        """Is ?"""
-
-        credentials = {"dbname": "db_one", "user": "chompuser1"}
-        source_config = {
-            "table" : "customers",
-            "columns": [
-                 "first_name", "last_name", "zip"
-             ]
-        }
-        source = SourcePostgres(credentials, source_config)
-        self.assertEqual(2000, source.itersize)
-
-
     @patch.object(SourcePostgres, '__init__')
     def test_construct_connect_string(self, mock_init):
         """Is correct connect string constructed from supplied dictionary?"""
@@ -129,6 +115,24 @@ class ExtractTestCase(unittest.TestCase):
         get_batch_retval = source.get_batch()
         mock_cursor_fetchmany.assert_called_once_with(8765)
         self.assertEqual("this is fetchmany return value", get_batch_retval)
+
+
+    @patch.object(SourcePostgres, '__init__')
+    def test_init_call(self, mock_init):
+        """Is the __init__ method called with expected arguments?"""
+
+        mock_init.return_value = None
+
+        credentials = {"dbname": "db_one", "user": "chompuser1"}
+        source_config = {
+            "table" : "customers",
+            "columns": [
+                 "first_name", "last_name", "zip"
+             ]
+        }
+
+        source = SourcePostgres(credentials, source_config)
+        mock_init.assert_called_once_with(credentials, source_config)
 
 if __name__ == "__main__":
     unittest.main()
