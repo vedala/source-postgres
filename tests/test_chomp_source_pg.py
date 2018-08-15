@@ -134,5 +134,39 @@ class ExtractTestCase(unittest.TestCase):
         source = SourcePostgres(credentials, source_config)
         mock_init.assert_called_once_with(credentials, source_config)
 
+
+    @patch('psycopg2.connect')
+    @patch.object(SourcePostgres, 'construct_connect_string')
+    @patch.object(SourcePostgres, 'execute_sql')
+    @patch('source_postgres.chomp_source_pg.construct_sql',
+                                            return_value="some_sql_str")
+    @patch.object(SourcePostgres, 'validate_config', return_value=None)
+    def test_init_method(self, mock_validate_config, mock_construct_sql,
+                      mock_execute_sql, mock_cons_conn_str, mock_pg_connect):
+        """Does the __init__ method call other methods as expected?"""
+
+        class MyCursor(object):
+            def __init__(self, cursor_name):
+                self.itersize = 5678
+
+        class MyConnection(object):
+            def cursor(self, cursor_name):
+                return MyCursor(cursor_name)
+
+        mock_pg_connect.return_value = MyConnection()
+
+        source_config = {
+            "table" : "customers",
+            "columns": [
+                 "first_name", "last_name", "zip"
+             ]
+        }
+
+        source = SourcePostgres("", source_config)
+        mock_validate_config.assert_called_once_with()
+        mock_construct_sql.assert_called_once_with(source_config)
+        mock_execute_sql.assert_called_once_with("some_sql_str")
+        self.assertEqual(5678, source.itersize)
+
 if __name__ == "__main__":
     unittest.main()
