@@ -21,15 +21,20 @@ class ExtractTestCase(unittest.TestCase):
         self.assertEqual(expected_string, source_pg_inst.construct_connect_string())
 
 
+    @patch('psycopg2.connect')
+    @patch.object(SourcePostgres, 'db_initialization')
     @patch.object(SourcePostgres, '__init__')
-    @patch.object(SourcePostgres, 'execute_sql')
-    def test_execute_sql(self, mock_execute_sql, mock_init):
+    def test_execute_method(self, mock_init, mock_db_init, mock_pg_connect):
         """Is execute_sql on cursor called with sql_str argument?"""
         
         mock_init.return_value = None
+
         source = SourcePostgres()
+        source.db_initialization()
+        mock_cursor = MagicMock()
+        source.cursor = mock_cursor
         source.execute_sql("some_sql_string")
-        mock_execute_sql.assert_called_once_with("some_sql_string")
+        mock_cursor.execute.assert_called_once_with("some_sql_string")
 
 
     @patch('psycopg2.connect')
